@@ -1,17 +1,19 @@
 import { NgModule, Type } from '@angular/core';
-import { FrmFormControlDirective } from './directives/frm-control.directive';
-import { FromFormAccessorFactory } from './forms/services/from-form-accessor.factory';
+import { FrmFormControlDirective, FrmGroupFormControlDirective } from './directives';
 import { FrmOperatePipe } from './pipes/operate.pipe';
+import { FormContextFactory } from './services/form-context.factory';
+import { FromFormAccessorFactory } from './services/from-form-accessor.factory';
 
 const DECLARATION: Type<unknown>[] = [
   FrmFormControlDirective,
+  FrmGroupFormControlDirective,
   FrmOperatePipe
 ];
 
 @NgModule({
   declarations: [DECLARATION],
   exports: [DECLARATION],
-  providers: [FromFormAccessorFactory]
+  providers: [FromFormAccessorFactory, FormContextFactory]
 })
 export class FromFormModule {
 }

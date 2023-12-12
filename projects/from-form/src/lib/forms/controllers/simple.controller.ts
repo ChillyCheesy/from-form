@@ -1,33 +1,34 @@
 import { BehaviorSubject, Observable, map } from 'rxjs';
-import { FrmControlConfig, FrmController } from '../models/from-controller.model';
+import { FrmControlConfig } from '../models';
+import { FrmController } from '../models/from-controller.model';
 import { Operable, UpdateValueFn } from '../models/from-operator.model';
 
 export class SimpleFrmController<T> implements FrmController<T> {
 
-  private _value: BehaviorSubject<T | undefined> = new BehaviorSubject<T | undefined>(undefined);
-  private _enable: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
-  private _touched: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private _dirty: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
-  private _valid: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+  private _value$$: BehaviorSubject<T | undefined> = new BehaviorSubject<T | undefined>(undefined);
+  private _enable$$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
+  private _touched$$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private _dirty$$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
+  private _valid$$: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(true);
 
   public constructor(
-    public config: Operable<FrmControlConfig<T>>
+    public readonly config: Operable<FrmControlConfig<T>>
   ) { }
 
   public writeValue(value: T | undefined): void {
-    this._value.next(value);
+    this._value$$.next(value);
   }
 
   public updateValue(updateFn: UpdateValueFn<T | undefined>): void {
-    this.writeValue(updateFn(this._value.getValue()));
+    this.writeValue(updateFn(this._value$$.getValue()));
   }
 
   public setEnableState(enable: boolean): void {
-    this._enable.next(enable);
+    this._enable$$.next(enable);
   }
 
   public updateEnableState(updateFn: UpdateValueFn<boolean>): void {
-    this.setEnableState(updateFn(this._enable.getValue()));
+    this.setEnableState(updateFn(this._enable$$.getValue()));
   }
 
   public setDisableState(disable: boolean): void {
@@ -35,15 +36,15 @@ export class SimpleFrmController<T> implements FrmController<T> {
   }
 
   public updateDisableState(updateFn: UpdateValueFn<boolean>): void {
-    this.setDisableState(updateFn(this._enable.getValue()));
+    this.setDisableState(updateFn(this._enable$$.getValue()));
   }
 
   public setTouchedState(touched: boolean): void {
-    this._touched.next(touched);
+    this._touched$$.next(touched);
   }
 
   public updateTouchedState(updateFn: UpdateValueFn<boolean>): void {
-    this.setTouchedState(updateFn(this._touched.getValue()));
+    this.setTouchedState(updateFn(this._touched$$.getValue()));
   }
 
   public setUntouchedState(untouched: boolean): void {
@@ -51,15 +52,15 @@ export class SimpleFrmController<T> implements FrmController<T> {
   }
 
   public updateUntouchedState(updateFn: UpdateValueFn<boolean>): void {
-    this.setUntouchedState(updateFn(this._touched.getValue()));
+    this.setUntouchedState(updateFn(this._touched$$.getValue()));
   }
 
   public setDirtyState(dirty: boolean): void {
-    this._dirty.next(dirty);
+    this._dirty$$.next(dirty);
   }
 
   public updateDirtyState(updateFn: UpdateValueFn<boolean>): void {
-    this.setDirtyState(updateFn(this._dirty.getValue()));
+    this.setDirtyState(updateFn(this._dirty$$.getValue()));
   }
 
   public setPristineState(pristine: boolean): void {
@@ -67,15 +68,15 @@ export class SimpleFrmController<T> implements FrmController<T> {
   }
 
   public updatePristineState(updateFn: UpdateValueFn<boolean>): void {
-    this.setPristineState(updateFn(this._dirty.getValue()));
+    this.setPristineState(updateFn(this._dirty$$.getValue()));
   }
 
   public setValidState(valid: boolean): void {
-    this._valid.next(valid);
+    this._valid$$.next(valid);
   }
 
   public updateValidState(updateFn: UpdateValueFn<boolean>): void {
-    this.setValidState(updateFn(this._valid.getValue()));
+    this.setValidState(updateFn(this._valid$$.getValue()));
   }
 
   public setInvalidState(invalid: boolean): void {
@@ -83,11 +84,11 @@ export class SimpleFrmController<T> implements FrmController<T> {
   }
 
   public updateInvalidState(updateFn: UpdateValueFn<boolean>): void {
-    this.setInvalidState(updateFn(this._valid.getValue()));
+    this.setInvalidState(updateFn(this._valid$$.getValue()));
   }
 
   public get value$(): Observable<T | undefined> {
-    return this._value.asObservable();
+    return this._value$$.asObservable();
   };
 
   /**
@@ -96,7 +97,7 @@ export class SimpleFrmController<T> implements FrmController<T> {
    * The state return true if the control is enabled, otherwise false.
    */
   public get enable$(): Observable<boolean> {
-    return this._enable.asObservable();
+    return this._enable$$.asObservable();
   };
 
   /**
@@ -114,7 +115,7 @@ export class SimpleFrmController<T> implements FrmController<T> {
    * The state return true if the user has interacted with the form control, e.g., by clicking or focusing on it.
    */
   public get touched$(): Observable<boolean> {
-    return this._touched.asObservable();
+    return this._touched$$.asObservable();
   };
 
   /**
@@ -132,7 +133,7 @@ export class SimpleFrmController<T> implements FrmController<T> {
    * The state return true if the user has changed the value of the control.
    */
   public get dirty$(): Observable<boolean> {
-    return this._dirty.asObservable();
+    return this._dirty$$.asObservable();
   };
 
   /**
@@ -150,7 +151,7 @@ export class SimpleFrmController<T> implements FrmController<T> {
    * The state return true if the control has passed all validation checks, otherwise false.
    */
   public get valid$(): Observable<boolean> {
-    throw new Error('Method not implemented.');
+    return this._valid$$.asObservable();
   }
 
   /**

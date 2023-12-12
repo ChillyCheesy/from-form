@@ -1,12 +1,9 @@
 import { EmbeddedViewRef, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Observable, Subscription, combineLatest, map, switchMap } from 'rxjs';
-import { FrmContext, FrmController, FrmValidatorFn, FromControllerAccessor, OperableFrmControlConfig } from '../forms/models';
+import { FrmContext, FrmControlConfig, FrmController, FrmValidatorFn, FromControllerAccessor, Operable } from '../forms/models';
 import { use } from '../forms/operators';
-import { FromFormAccessorFactory } from '../forms/services/from-form-accessor.factory';
 
 export class FrmFormControlDirectiveEngine<T> {
-
-  private _embeddedViewRef!: EmbeddedViewRef<any>;
 
   private _valueSubscription!: Subscription;
   private _disabledSubscription!: Subscription;
@@ -19,28 +16,32 @@ export class FrmFormControlDirectiveEngine<T> {
   private _contextDataSubscription!: Subscription;
 
   public constructor(
-    public readonly frmContext: FrmContext,
-    private readonly viewContainerRef: ViewContainerRef,
-    private readonly templateRef: TemplateRef<any>,
+    public readonly frmContext: FrmContext
   ) { }
 
-  public onInit(): void {
+  public renderController(viewContainerRef: ViewContainerRef, templateRef: TemplateRef<{ [key: string]: any }>): EmbeddedViewRef<any> {
     if (!this.frmContext) throw new Error('The context is required.');
     const controller: FrmController<T> = this.frmContext.frmController;
-    const config: OperableFrmControlConfig<T> = controller.config;
-    this._contextDataSubscription = config.contextData(this.frmContext)
-      .subscribe((contextData: { [key: string]: any; }) => this.frmContext.contextData = contextData);
-    // Subscribe to context data changes to update the embedded view
-    this._embeddedViewRef = this.viewContainerRef.createEmbeddedView(this.templateRef, {
-      $implicit: this.frmContext.contextData ?? use(undefined),
-      frmFormControl: this.frmContext.contextName,
+    const config: Operable<FrmControlConfig<T>> = controller.config;
+    // create the embedded view and update the context data when the context data changes
+    const embeddedViewRef = viewContainerRef.createEmbeddedView(templateRef, {
+      $implicit: this.frmContext.contextData,
+      ...this.frmContext.contextData,
     });
+    this._contextDataSubscription = config.contextData(this.frmContext).subscribe((contextData: { [key: string]: any; }) => {
+      this.frmContext.contextData = contextData ?? use(undefined);
+      embeddedViewRef.context = this.frmContext.contextData;
+    });
+    // update the controller when the value changes
     this._valueSubscription = config.value(this.frmContext).subscribe((value: T | undefined) => controller.writeValue(value));
+    // update the controller when the disabled state changes
     this._disabledSubscription = config.disabled(this.frmContext).subscribe((disabled: boolean) => controller.setDisableState(disabled));
+    // update the view when the hide state changes
     this._hideSubscription = config.hide(this.frmContext).subscribe((hide: boolean) => {
-      if (hide) this.viewContainerRef.detach();
-      else this.viewContainerRef.insert(this._embeddedViewRef);
+      if (hide) viewContainerRef.detach();
+      else viewContainerRef.insert(embeddedViewRef);
     });
+    // update the controller when the validators changes
     this._validatorsSubscription = config.validators(this.frmContext).pipe(
       switchMap((valitators: FrmValidatorFn<T>[]) => controller.value$.pipe(
         map((value: T | undefined) => valitators.map((validator: FrmValidatorFn<T>) => validator(value))),
@@ -48,20 +49,19 @@ export class FrmFormControlDirectiveEngine<T> {
       switchMap((validations: Observable<boolean>[]) => combineLatest(validations)),
       map((validations: boolean[]) => validations.every((valid: boolean) => valid))
     ).subscribe((valid: boolean) => controller.setValidState(valid));
-    ////////////////////////////////////////////////////////////////
+    return embeddedViewRef;
   }
 
-  public onAfterViewInit(factory: FromFormAccessorFactory): void {
+  public bindToAccessor(accessor: FromControllerAccessor<T>): void {
+    if (!this.frmContext) throw new Error('The context is required.');
     const crontroller: FrmController<T> = this.frmContext.frmController;
-    const accessor: FromControllerAccessor<T> | undefined = factory.createAccessor<T>(this._embeddedViewRef);
-    if (!accessor) throw new Error('We can\'t find the accessor element in the template. Please use the directive on an input element or a custom element with the FromControllerAccessor interface implemented.');
     accessor.registerOnChange((value: T) => crontroller.writeValue(value));
     accessor.registerOnTouched(() => crontroller.setTouchedState(true));
     this._accesorDisabledSubscription = crontroller.disable$.subscribe((disabled: boolean) => accessor.setDisabledState(disabled));
     this._accesorValueSubscription = crontroller.value$.subscribe((value: T | undefined) => accessor.writeValue(value));
   }
 
-  public onDestroy(): void {
+  public destroy(): void {
     this._valueSubscription.unsubscribe();
     this._disabledSubscription.unsubscribe();
     this._hideSubscription.unsubscribe();
@@ -69,7 +69,6 @@ export class FrmFormControlDirectiveEngine<T> {
     this._accesorDisabledSubscription.unsubscribe();
     this._accesorValueSubscription.unsubscribe();
     this._contextDataSubscription.unsubscribe();
-    this.viewContainerRef.clear();
   }
 
 }

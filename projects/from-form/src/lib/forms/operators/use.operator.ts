@@ -26,7 +26,7 @@ export function useIf<T>(options: UseIfOptions<T>): FrmOperation<T> {
 
 export type UseWhenOptions<T> = {
   when: FrmOperation<string | symbol | number>;
-  cases: { [key: string | symbol | number ]: FrmOperation<T>; };
+  cases: { [key: string | symbol | number]: FrmOperation<T>; };
   default?: FrmOperation<T>;
 };
 

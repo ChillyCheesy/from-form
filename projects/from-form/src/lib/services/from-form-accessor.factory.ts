@@ -1,10 +1,8 @@
 import { EmbeddedViewRef, Injectable } from '@angular/core';
-import { HTMLInputAccessor } from '../accessor/html-input.accessor';
-import { FromControllerAccessor } from '../models';
+import { HTMLInputAccessor } from '../forms/accessor/html-input.accessor';
+import { FromControllerAccessor } from '../forms/models';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable()
 export class FromFormAccessorFactory {
 
   public createAccessor<T>(viewRef: EmbeddedViewRef<any>): FromControllerAccessor<T> | undefined {

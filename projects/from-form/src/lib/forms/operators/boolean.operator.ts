@@ -1,9 +1,8 @@
 import { Observable, combineLatest, map } from 'rxjs';
-import { FromFormFn } from '../models/form-form-function.model';
-import { FromFormAccessor } from '../models/from-form.model';
+import { FrmContext, FrmOperation } from '../models';
 
-export function and(...args: FromFormFn<boolean>[]): FromFormFn<boolean> {
-  return (form: FromFormAccessor) => {
+export function and(...args: FrmOperation<boolean>[]): FrmOperation<boolean> {
+  return (form: FrmContext) => {
     const results: Observable<boolean>[] = args.map(arg => arg(form));
     return combineLatest(results).pipe(
       map(results => results.every(result => result))
@@ -11,8 +10,8 @@ export function and(...args: FromFormFn<boolean>[]): FromFormFn<boolean> {
   }
 }
 
-export function or(...args: FromFormFn<boolean>[]): FromFormFn<boolean> {
-  return (form: FromFormAccessor) => {
+export function or(...args: FrmOperation<boolean>[]): FrmOperation<boolean> {
+  return (form: FrmContext) => {
     const results: Observable<boolean>[] = args.map(arg => arg(form));
     return combineLatest(results).pipe(
       map(results => results.some(result => result))
@@ -20,6 +19,6 @@ export function or(...args: FromFormFn<boolean>[]): FromFormFn<boolean> {
   }
 }
 
-export function not(arg: FromFormFn<boolean>): FromFormFn<boolean> {
-  return (form: FromFormAccessor) => arg(form).pipe(map(result => !result));
+export function not(arg: FrmOperation<boolean>): FrmOperation<boolean> {
+  return (form: FrmContext) => arg(form).pipe(map(result => !result));
 }

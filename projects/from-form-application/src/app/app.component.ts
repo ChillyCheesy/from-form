@@ -1,30 +1,35 @@
 import { Component } from '@angular/core';
-import { FrmController, buildController, use } from 'from-form';
-import { map } from 'rxjs';
+import { FrmController, GroupFrmController, createController, createGroupController, use } from 'from-form';
 
 @Component({
   selector: 'app-root',
   template: `
-  <div *frmFormControl="frmController">
-    <input>
-    <span>{{ frmController.value$ | async }}</span>
-    <button (click)="uppercase()">uppercase</button>
-  </div>
+    <div *frmGroupControl="formGroup">
+      <input *frmFormControl="name">
+      <span></span>
+      <button (click)="uppercase()">uppercase</button>
+    </div>
+    <span>
+      {{ formGroup.value$ | async | json }}
+    </span>
+    <span>
+      {{ formGroup.valid$ | async | json }}
+    </span>
   `,
   styles: [`div{display:flex;flex-direction:column;max-width:300px;}`]
 })
 export class AppComponent {
 
-  public frmController: FrmController<string> = buildController<string>({
-    contextData: use({
-      label: (context) => context.frmController.value$.pipe(
-        map((value: string | undefined) => value?.toUpperCase())
-      ),
+  public formGroup: GroupFrmController<{ name: string }> = createGroupController({
+    name: createController({
+      value: use('hello world'),
     }),
   });
 
+  public name: FrmController<string> = this.formGroup.get('name');
+
   public uppercase(): void {
-    this.frmController.updateValue((value: string | undefined) => value?.toUpperCase());
+
   }
 
 }
