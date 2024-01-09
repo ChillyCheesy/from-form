@@ -4,6 +4,7 @@ import { GroupFrmContext } from '../forms/controllers/contexts/group-form.contex
 import { FrmContext, FrmContextProvider } from '../forms/models';
 import { FROM_FORM_CONTEXT_PROVIDER } from '../from-form.config';
 import { FormContextFactory } from '../services/form-context.factory';
+import { FrmFormControlDirectiveEngine } from './form-control-directive.engine';
 
 @Directive({
   selector: '[frmGroupControl]',
@@ -20,6 +21,8 @@ export class FrmGroupFormControlDirective<T> implements FrmContextProvider, OnIn
   public frmGroupController!: GroupFrmController<T>;
   public frmContext!: FrmContext;
 
+  private _engine!: FrmFormControlDirectiveEngine<T>;
+  private _viewRef!: EmbeddedViewRef<any>;
   private _embeddedViewRef!: EmbeddedViewRef<any>;
 
   public constructor(
@@ -33,13 +36,13 @@ export class FrmGroupFormControlDirective<T> implements FrmContextProvider, OnIn
   public ngOnInit(): void {
     const parentContext: FrmContext | undefined = this.parentContext?.frmContext;
     this.frmContext = this.contextFactory.createContext(GroupFrmContext<T>, parentContext, this.frmGroupController);
-    this._embeddedViewRef = this.viewContainerRef.createEmbeddedView(this.templateRef, {
-      $implicit: this.frmContext.contextData,
-      ...this.frmContext.contextData,
-    });
+    this._engine = new FrmFormControlDirectiveEngine(this.frmContext);
+    this._viewRef = this._engine.renderController(this.viewContainerRef, this.templateRef);
+
   }
 
   public ngOnDestroy(): void {
     this._embeddedViewRef.destroy();
+    this._viewRef.destroy();
   }
 }

@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { FrmControlConfig } from './from-controller-config.model';
+import { FrmControlConfig } from './config/from-controller-config.model';
 import { Operable, UpdateValueFn } from './from-operator.model';
 
 /**

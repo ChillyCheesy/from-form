@@ -1,6 +1,6 @@
 
 import { GroupFrmController } from '..';
-import { FrmControlConfig, FrmController, FrmGroupConfig, Operable } from '../../models';
+import { FrmControlConfig, FrmGroupConfig, Operable } from '../../models';
 import { use } from '../../operators';
 
 /**
@@ -18,9 +18,8 @@ export function createGroupController<T>(groupConfig: FrmGroupConfig<T>, control
     validators: use([]),
     contextData: use({}),
   }, controlConfig);
-  const keys: (keyof T)[] = Object.keys(groupConfig) as (keyof T)[];
-  for (const key of keys) {
-    const controller: FrmController<T[keyof T]> = groupConfig[key];
+  for (const key in groupConfig) {
+    const controller: FrmGroupConfig<T>[Extract<keyof T, string>] = groupConfig[key];
     controller.name = key;
   }
   return new GroupFrmController<T>(groupConfig, fullConfig);

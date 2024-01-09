@@ -6,13 +6,15 @@ import { FrmControlConfig, FrmController, FrmGroupConfig, Operable, UpdateValueF
  */
 export class GroupFrmController<T> implements FrmController<T> {
 
+  private test: string = '';
+
   public constructor(
     private readonly controllers: FrmGroupConfig<T>,
     public readonly config: Operable<FrmControlConfig<T>>
   ) { }
 
-  public get(key: keyof T): FrmController<T[keyof T]> {
-    return this.controllers[key];
+  public get<K extends keyof T>(key: K): T[K] extends object ? GroupFrmController<T[K]> : FrmController<T[K]> {
+    return this.controllers[key] as any;
   }
 
   public writeValue(value: T | undefined): void {

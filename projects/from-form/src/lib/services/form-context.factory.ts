@@ -7,7 +7,7 @@ import { FrmContext, FrmController } from '../forms/models';
 export class FormContextFactory {
 
   public createContext<T extends FrmContext>(type: Type<T>, parentContext: FrmContext | undefined, controller: FrmController<any>): T {
-    const contextName: string = (controller.name ?? 'root') as string;
+    const contextName: string = String(controller.name ?? 'root');
     const builder: ContextBuilder = new ContextBuilder()
       .setFrmController(controller)
       .setContextName(contextName);

@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
-import { FrmController, GroupFrmController, createController, createGroupController, use } from 'from-form';
+import { createController, createGroupController, use } from 'from-form';
 
 @Component({
   selector: 'app-root',
   template: `
-    <div *frmGroupControl="formGroup">
+    <div *frmGroupControl="formGroup; let data = prout">
+      {{ data | frmOperate | async | json }}
       <input *frmFormControl="name">
       <span></span>
       <button (click)="uppercase()">uppercase</button>
@@ -20,16 +21,28 @@ import { FrmController, GroupFrmController, createController, createGroupControl
 })
 export class AppComponent {
 
-  public formGroup: GroupFrmController<{ name: string }> = createGroupController({
+  public formGroup = createGroupController({
     name: createController({
       value: use('hello world'),
     }),
+    truc: createGroupController({
+      bite: createGroupController({
+        test: createController({
+          value: use('hello world'),
+        }),
+      }),
+    }),
+  },
+  {
+    contextData: use({
+      prout: use('patate')
+    })
   });
 
-  public name: FrmController<string> = this.formGroup.get('name');
+  public name = this.formGroup.get('truc').get('bite').get('test');
 
   public uppercase(): void {
-
+    this.formGroup.get('truc').get('bite').get('test').updateValue((value: string | undefined) => value?.toUpperCase());
   }
 
 }
